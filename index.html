@@ -8,8 +8,8 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- html2canvas -->
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- 안정적인 html2canvas CDN으로 교체 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -192,9 +192,8 @@
     <!-- Main App -->
     <main id="app" class="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col relative border border-emerald-100 z-10">
         
-        <!-- Header Image (Spring/Flowers Theme) -->
+        <!-- Header Image -->
         <div class="relative w-full h-48 bg-emerald-100 overflow-hidden">
-            <!-- Unsplash image: spring flowers / nature -->
             <img src="https://images.unsplash.com/photo-1490750967868-8f52a061c4b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80" alt="Cover" class="w-full h-full object-cover opacity-80" onerror="this.src='https://images.unsplash.com/photo-1416879598555-cc4e4731d651?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80'">
             <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/70 to-emerald-900/10 flex flex-col items-center justify-end pb-6 text-white">
                 <div class="text-sm font-medium tracking-widest mb-1 opacity-90 text-emerald-100">REBOOT NOTE</div>
@@ -277,14 +276,15 @@
         <div style="width: 40px; height: 1px; background: #a7f3d0; margin: 15px auto;"></div>
         <div style="font-size: 22px; font-weight: bold; color: #14532d; line-height: 1.4; margin-bottom: 30px; word-break: keep-all;" id="share-question"></div>
         <div id="share-image-container" style="width: 100%; margin-bottom: 20px; display: none;">
-            <img id="share-image" src="" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- 이미지 기본값을 투명 픽셀로 설정하여 오류 방지 -->
+            <img id="share-image" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         </div>
         <div style="font-size: 16px; color: #1e293b; line-height: 1.8; text-align: left; width: 100%; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 4px; white-space: pre-wrap; word-break: keep-all; border: 1px solid #ecfdf5;" id="share-content"></div>
         <div style="margin-top: 40px; font-style: italic; color: #64748b; font-size: 12px;" id="share-quote"></div>
     </div>
 
     <script>
-        // 4월 질문 리스트 (30일) - 구체적인 행동과 실천 중심 재구성
+        // 4월 질문 리스트 (30일)
         const journalData = [
             { chapter: "1. 씨앗 고르기", date: "4/1(수)", question: "이번 달에 꼭 이루고 싶은 작고 구체적인 목표 하나는 무엇인가요?", quote: "가장 좋은 나무를 심는 시간은 20년 전이었고, 두 번째로 좋은 시간은 바로 지금이다." },
             { chapter: "1. 씨앗 고르기", date: "4/2(목)", question: "봄꽃처럼 활짝 웃었던, 오늘 가장 기분 좋았던 순간은 언제인가요?", quote: "기쁨은 꽃과 같아서 스스로 피어나게 두어야 한다." },
@@ -320,7 +320,6 @@
             { chapter: "3. 마침내, 꽃피우기", date: "4/30(목)", question: "4월의 마지막 날, 다가올 5월 첫째 주에 가장 먼저 하고 싶은 일 하나는?", quote: "오늘의 마침표는 내일의 아름다운 시작이다." }
         ];
 
-        // --- Data Handling ---
         let currentIndex = 0;
         const STORAGE_KEY = 'april_journal_entries'; 
         const STORAGE_KEY_IMAGES = 'april_journal_images';
@@ -328,7 +327,6 @@
         let userEntries = {}; 
         let userImages = {}; 
 
-        // --- Initialization ---
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             const savedData = localStorage.getItem(STORAGE_KEY);
@@ -344,14 +342,12 @@
             generateTabs();
             renderPage(currentIndex);
             
-            // Failsafe Loading removal
             setTimeout(() => {
                 const loader = document.getElementById('loading');
                 if(loader) loader.style.display = 'none';
             }, 1000);
         });
 
-        // --- Core Functions ---
         const tabContainer = document.getElementById('tab-container');
         
         function generateTabs() {
@@ -361,7 +357,6 @@
             const row2 = document.createElement('div');
             row2.className = 'flex overflow-x-auto no-scrollbar gap-2 px-4 scroll-smooth';
             
-            // 30 days for April
             journalData.forEach((_, index) => {
                 const btn = document.createElement('button');
                 const dayNum = index + 1;
@@ -423,7 +418,6 @@
             }
         }
 
-        // --- Interaction ---
         function saveEntry() {
             userEntries[currentIndex] = document.getElementById('answer-input').value;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userEntries));
@@ -433,7 +427,7 @@
             saveEntry();
             const t = document.getElementById('save-toast');
             t.classList.remove('hidden', 'toast-show');
-            void t.offsetWidth; // trigger reflow
+            void t.offsetWidth;
             t.classList.add('toast-show');
             setTimeout(() => t.classList.add('hidden'), 2500);
         }
@@ -441,7 +435,6 @@
         function nextPage() { if(currentIndex < journalData.length - 1) { currentIndex++; renderPage(currentIndex); } }
         document.getElementById('answer-input').addEventListener('input', saveEntry);
 
-        // --- Images ---
         async function handleImageUpload(e) {
             const files = e.target.files;
             if(!files.length) return;
@@ -485,7 +478,6 @@
             }
         }
 
-        // --- Export ---
         async function copyForGoogleDocs() {
             const btn = document.getElementById('btn-export');
             const originTxt = btn.innerHTML;
@@ -536,11 +528,13 @@
         }
         function copyToClipboardManual() { selectAllManual(); document.execCommand('copy'); alert("복사되었습니다!"); }
 
-        // --- Share & Utils ---
         async function shareCurrentCard() {
             const btn = document.getElementById('share-btn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<span class="animate-spin">⌛</span>`;
+            
+            // 공유 버튼 로딩 표시 (무한 로딩 방지용 UI 개선)
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-emerald-600"></i>`;
+            lucide.createIcons();
             btn.disabled = true;
 
             const data = journalData[currentIndex];
@@ -548,15 +542,19 @@
             document.getElementById('share-header').textContent = data.chapter.toUpperCase();
             document.getElementById('share-date').textContent = data.date;
             document.getElementById('share-question').textContent = data.question;
-            document.getElementById('share-content').textContent = entry.substring(0, 500) || "(내용 없음)";
+            document.getElementById('share-content').textContent = entry.substring(0, 500) || "(작성된 내용이 없습니다)";
             document.getElementById('share-quote').textContent = data.quote;
             
             const imgContainer = document.getElementById('share-image-container');
+            const shareImage = document.getElementById('share-image');
             const userImgs = userImages[currentIndex] || [];
+            
+            // 핵심 오류 원인 해결: 이미지가 없을 땐 빈칸(src="") 대신 투명 픽셀 처리
             if(userImgs.length > 0) {
-                document.getElementById('share-image').src = userImgs[0];
+                shareImage.src = userImgs[0];
                 imgContainer.style.display = 'block';
             } else {
+                shareImage.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
                 imgContainer.style.display = 'none';
             }
 
@@ -565,7 +563,7 @@
                     scale: 2, 
                     useCORS: true, 
                     backgroundColor: '#f8fafc',
-                    allowTaint: true 
+                    logging: false
                 });
                 document.getElementById('generated-share-image').src = canvas.toDataURL('image/png');
                 document.getElementById('share-overlay').style.display = 'flex';
@@ -573,7 +571,9 @@
                 console.error(e);
                 alert("이미지 생성 중 오류가 발생했습니다."); 
             } finally {
+                // 버튼 상태 복구 및 아이콘 재생성
                 btn.innerHTML = originalText;
+                lucide.createIcons();
                 btn.disabled = false;
             }
         }
