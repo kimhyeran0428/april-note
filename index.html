@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4월의 기록: 다정한 정원사</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- html2canvas -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0fdf4; /* Very pale green (emerald-50) */
+            color: #14532d; /* Dark green text */
+        }
+        
+        .book-font {
+            font-family: 'Nanum Myeongjo', serif;
+        }
+
+        /* Scrollbar Styling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-track { background: #f0fdf4; }
+        textarea::-webkit-scrollbar-thumb { background: #86efac; border-radius: 4px; } /* Emerald 300 */
+
+        /* Animation */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        .toast-show { animation: fadeInOut 3s forwards; }
+
+        /* Overlays */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(6, 78, 59, 0.6); /* Emerald 900 with opacity */
+            z-index: 10000;
+            justify-content: center; align-items: center;
+        }
+        
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid #dcfce7;
+        }
+
+        /* Gallery */
+        .image-gallery {
+            display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px; margin-bottom: 12px; scroll-behavior: smooth;
+        }
+        .image-item {
+            position: relative; flex-shrink: 0; width: 150px; height: 150px;
+            border-radius: 8px; overflow: hidden; border: 1px solid #bbf7d0;
+            background-color: #fff;
+        }
+        .image-item img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .remove-image-btn {
+            position: absolute; top: 6px; right: 6px;
+            background: rgba(21, 128, 61, 0.9); /* Green 700 */
+            color: white; border-radius: 50%; width: 28px; height: 28px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            z-index: 50; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .remove-image-btn:hover { transform: scale(1.1); background: rgba(220, 38, 38, 0.9); } /* Red on hover */
+        .remove-image-btn svg { pointer-events: none; }
+
+        /* Share Template */
+        #share-card-template {
+            position: fixed; left: -9999px; top: 0; width: 600px; min-height: 800px; height: auto;
+            background-color: #f8fafc; padding: 50px 40px; box-sizing: border-box;
+            border: 1px solid #dcfce7; font-family: 'Nanum Myeongjo', serif;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+
+        #manual-copy-area {
+            width: 100%; height: 200px; padding: 15px; border: 1px solid #bbf7d0;
+            border-radius: 8px; margin-bottom: 1rem; font-size: 14px;
+            overflow-y: auto; text-align: left; background-color: #fff;
+            white-space: normal; word-break: break-word;
+        }
+        #manual-copy-area img { max-width: 100px; height: auto; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 selection:bg-emerald-200">
+
+    <!-- Settings Overlay -->
+    <div id="settings-overlay" class="overlay">
+        <div class="modal-content text-center">
+            <h2 class="text-xl font-bold book-font text-emerald-900 mb-6">데이터 관리 (4월)</h2>
+            <div class="space-y-3">
+                <button onclick="backupData()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-900 py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition border border-emerald-200">
+                    <i data-lucide="download-cloud" class="w-5 h-5"></i>
+                    <div class="text-left">
+                        <div class="font-bold text-sm">파일로 백업하기</div>
+                        <div class="text-xs text-stone-500">4월의 기록을 저장합니다</div>
+                    </div>
+                </button>
+                <button onclick="document.getElementById('restore-input').click()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-900 py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition border border-emerald-200">
+                    <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    <div class="text-left">
+                        <div class="font-bold text-sm">데이터 복구하기</div>
+                        <div class="text-xs text-stone-500">백업 파일을 불러옵니다</div>
+                    </div>
+                </button>
+                <input type="file" id="restore-input" class="hidden" accept=".json" onchange="restoreData(event)">
+                <hr class="border-emerald-200 my-4">
+                <button onclick="resetData()" class="w-full text-red-400 hover:text-red-600 py-2 text-sm flex items-center justify-center gap-2 transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> 초기화 (4월 데이터 삭제)
+                </button>
+            </div>
+            <button onclick="closeOverlay('settings-overlay')" class="mt-6 w-full bg-stone-700 text-white py-2 rounded-lg hover:bg-stone-800 transition">닫기</button>
+        </div>
+    </div>
+
+    <!-- Export Overlay -->
+    <div id="export-overlay" class="overlay">
+        <div class="modal-content text-center w-full max-w-lg">
+            <div id="export-status-container">
+                <div class="mb-4 text-stone-600 flex justify-center"><div id="status-icon"></div></div>
+                <h2 id="status-title" class="text-2xl font-bold book-font text-stone-800 mb-2">복사 준비 완료</h2>
+                <p id="status-message" class="text-stone-600 mb-4 text-sm leading-relaxed">
+                    아래 영역이 선택되었나요?<br><strong>Ctrl + C</strong> 를 눌러 복사하세요.
+                </p>
+                <div id="manual-copy-area" contenteditable="true" onclick="selectAllManual()"></div>
+                <div class="flex gap-2 justify-center mt-4">
+                    <button onclick="openGoogleDocs()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+                        <i data-lucide="external-link" class="w-5 h-5"></i> 구글 문서 열기
+                    </button>
+                    <button onclick="copyToClipboardManual()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-3 px-4 rounded-lg transition">재시도</button>
+                </div>
+            </div>
+            <button onclick="closeOverlay('export-overlay')" class="mt-4 text-sm text-stone-400 hover:text-stone-600 underline">닫기</button>
+        </div>
+    </div>
+
+    <!-- Share Overlay -->
+    <div id="share-overlay" class="overlay">
+        <div class="modal-content relative p-6 w-full max-w-sm">
+            <button onclick="closeOverlay('share-overlay')" class="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <h2 class="text-xl font-bold book-font text-stone-800 mb-4">4월의 기록 공유</h2>
+            <div id="share-preview-area" class="w-full bg-stone-100 rounded-lg mb-6 overflow-hidden flex items-center justify-center min-h-[200px]">
+                <img id="generated-share-image" class="max-w-full h-auto shadow-md" alt="공유 이미지">
+            </div>
+            <button onclick="downloadShareImage()" class="w-full bg-stone-700 hover:bg-stone-800 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i> 이미지 저장
+            </button>
+            <p class="text-xs text-stone-400 mt-2 text-center">저장된 이미지를 SNS에 공유해보세요</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="w-full max-w-3xl flex flex-wrap gap-2 justify-between items-center mb-6 z-10">
+        <div class="flex flex-col">
+            <h1 class="text-xl md:text-2xl font-bold book-font text-stone-800">4월의 기록</h1>
+            <p class="text-xs text-emerald-600 mt-1 font-medium">내 마음의 다정한 정원사</p>
+        </div>
+        <div class="flex gap-2 items-center">
+            <button id="share-btn" onclick="shareCurrentCard()" class="flex items-center gap-2 bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-900 px-3 py-2 rounded-lg shadow-sm transition text-sm font-medium">
+                <i data-lucide="share-2" class="w-4 h-4"></i> <span class="hidden sm:inline">공유</span>
+            </button>
+            <button id="btn-export" onclick="copyForGoogleDocs()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-sm transition text-sm font-medium">
+                <i data-lucide="file-text" class="w-4 h-4"></i> <span class="hidden sm:inline">내보내기</span>
+            </button>
+            <button onclick="openSettings()" class="flex items-center justify-center bg-stone-200 hover:bg-stone-300 text-stone-700 w-9 h-9 rounded-lg transition">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App -->
+    <main id="app" class="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col relative border border-emerald-100 z-10">
+        
+        <!-- Header Image (Spring/Flowers Theme) -->
+        <div class="relative w-full h-48 bg-emerald-100 overflow-hidden">
+            <!-- Unsplash image: spring flowers / nature -->
+            <img src="https://images.unsplash.com/photo-1490750967868-8f52a061c4b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80" alt="Cover" class="w-full h-full object-cover opacity-80" onerror="this.src='https://images.unsplash.com/photo-1416879598555-cc4e4731d651?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80'">
+            <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/70 to-emerald-900/10 flex flex-col items-center justify-end pb-6 text-white">
+                <div class="text-sm font-medium tracking-widest mb-1 opacity-90 text-emerald-100">REBOOT NOTE</div>
+                <h2 class="text-3xl font-bold book-font drop-shadow-md">4월의 기록</h2>
+                <div class="w-10 h-0.5 bg-white/80 my-2"></div>
+                <p class="text-sm font-light opacity-90">내 마음의 다정한 정원사</p>
+            </div>
+        </div>
+
+        <div id="loading" class="absolute inset-0 flex items-center justify-center bg-white z-50">
+            <div class="animate-pulse text-emerald-400">페이지를 불러오는 중...</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="w-full bg-[#f8fafc] border-b border-emerald-100 py-3">
+            <div id="tab-container" class="flex flex-col gap-2"></div>
+        </div>
+
+        <!-- Top Bar -->
+        <div class="bg-[#f8fafc] px-6 py-4 border-b border-emerald-50 flex justify-between items-center">
+            <div class="flex flex-col">
+                <span id="chapter-display" class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Chapter 1</span>
+                <div id="date-display" class="font-bold text-stone-700 text-lg"></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="save-toast" class="hidden text-xs text-emerald-700 font-medium flex items-center gap-1 bg-emerald-100 px-2 py-1 rounded border border-emerald-300">
+                    <i data-lucide="check" class="w-3 h-3"></i> 저장 완료!
+                </div>
+                <div class="text-xs text-stone-400 font-mono tracking-widest" id="page-indicator">1 / 30</div>
+            </div>
+        </div>
+
+        <!-- Writing Area -->
+        <div class="flex-1 p-6 md:p-10 flex flex-col justify-center">
+            <div class="mb-8 text-center">
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold book-font leading-relaxed text-stone-800 break-keep"></h2>
+            </div>
+
+            <div class="w-full flex-1 relative flex flex-col">
+                <div id="image-gallery-container" class="hidden">
+                    <div id="image-list" class="image-gallery"></div>
+                </div>
+
+                <div class="relative w-full">
+                    <textarea id="answer-input" class="w-full h-64 p-6 bg-white border border-emerald-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:bg-[#f0fdf4] resize-none text-stone-700 leading-8 book-font text-lg transition-colors pb-10" placeholder="나의 일상에 다정하게 물을 주듯 기록해보세요..." maxlength="1000"></textarea>
+                    <div class="absolute bottom-4 right-4 text-xs text-stone-400 pointer-events-none"><span id="char-count">0</span>자</div>
+                </div>
+
+                <div class="flex justify-between items-center mt-3 px-1">
+                    <div>
+                        <input type="file" id="image-upload" accept="image/*" multiple class="hidden" onchange="handleImageUpload(event)">
+                        <button onclick="document.getElementById('image-upload').click()" class="flex items-center gap-1.5 px-3 py-1.5 text-stone-500 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors text-sm">
+                            <i data-lucide="camera" class="w-4 h-4"></i> <span>오늘의 풍경(사진)</span>
+                        </button>
+                    </div>
+                    <button onclick="manualSave()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-sm rounded transition-colors duration-200 font-medium">
+                        <i data-lucide="save" class="w-4 h-4"></i> 기록 저장하기
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-emerald-50 text-center">
+                <p class="text-sm text-stone-500 italic book-font" id="quote-text"></p>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <div class="bg-[#f8fafc] p-4 border-t border-emerald-100 flex justify-between items-center">
+            <button onclick="prevPage()" id="btn-prev" class="flex items-center gap-2 px-4 py-2 text-stone-500 hover:text-emerald-700 disabled:opacity-30 transition"><i data-lucide="chevron-left" class="w-5 h-5"></i> 이전</button>
+            <button onclick="nextPage()" id="btn-next" class="flex items-center gap-2 px-4 py-2 text-stone-500 hover:text-emerald-700 disabled:opacity-30 transition">다음 <i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        </div>
+    </main>
+
+    <footer class="mt-8 text-stone-400 text-xs text-center z-10"><p>작성된 내용은 브라우저에 자동 저장됩니다.</p></footer>
+
+    <!-- Hidden Share Template -->
+    <div id="share-card-template">
+        <div style="font-size: 14px; color: #10b981; margin-bottom: 20px; letter-spacing: 2px; font-family: 'Noto Sans KR', sans-serif;" id="share-header">APRIL RECORD</div>
+        <div style="font-size: 20px; font-weight: bold; color: #064e3b; margin-bottom: 5px;" id="share-date"></div>
+        <div style="width: 40px; height: 1px; background: #a7f3d0; margin: 15px auto;"></div>
+        <div style="font-size: 22px; font-weight: bold; color: #14532d; line-height: 1.4; margin-bottom: 30px; word-break: keep-all;" id="share-question"></div>
+        <div id="share-image-container" style="width: 100%; margin-bottom: 20px; display: none;">
+            <img id="share-image" src="" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        </div>
+        <div style="font-size: 16px; color: #1e293b; line-height: 1.8; text-align: left; width: 100%; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 4px; white-space: pre-wrap; word-break: keep-all; border: 1px solid #ecfdf5;" id="share-content"></div>
+        <div style="margin-top: 40px; font-style: italic; color: #64748b; font-size: 12px;" id="share-quote"></div>
+    </div>
+
+    <script>
+        // 4월 질문 리스트 (30일) - 구체적인 행동과 실천 중심 재구성
+        const journalData = [
+            { chapter: "1. 씨앗 고르기", date: "4/1(수)", question: "이번 달에 꼭 이루고 싶은 작고 구체적인 목표 하나는 무엇인가요?", quote: "가장 좋은 나무를 심는 시간은 20년 전이었고, 두 번째로 좋은 시간은 바로 지금이다." },
+            { chapter: "1. 씨앗 고르기", date: "4/2(목)", question: "봄꽃처럼 활짝 웃었던, 오늘 가장 기분 좋았던 순간은 언제인가요?", quote: "기쁨은 꽃과 같아서 스스로 피어나게 두어야 한다." },
+            { chapter: "1. 씨앗 고르기", date: "4/3(금)", question: "최근 내 머릿속을 복잡하게 하는 고민 하나를 적고 해결책을 적어본다면?", quote: "걱정은 행동으로 옮길 때 비로소 사라지기 시작한다." },
+            { chapter: "1. 씨앗 고르기", date: "4/4(토)", question: "길가에 피어난 꽃을 보며 걸음을 멈춘 적이 있나요? 오늘 발견한 봄의 흔적은?", quote: "아름다움을 보기 위해 잠시 멈추는 것은 시간을 낭비하는 것이 아니다." },
+            { chapter: "1. 씨앗 고르기", date: "4/5(일)", question: "(식목일) 매일 10분씩이라도 꼭 실천하고 싶은 나만의 작은 습관은?", quote: "우리가 습관을 만들고, 그 습관이 우리를 만든다." },
+            { chapter: "1. 씨앗 고르기", date: "4/6(월)", question: "오늘 하루, 나를 도와주거나 기분 좋게 해준 고마운 사람은 누구인가요?", quote: "사랑과 친절은 결코 낭비되지 않는다. 그것은 세상을 비추는 햇살이다." },
+            { chapter: "1. 씨앗 고르기", date: "4/7(화)", question: "최근 나를 가장 설레게 한 새로운 아이디어나 계획이 있나요?", quote: "설렘은 마음이 자라나고 있다는 증거다." },
+            { chapter: "1. 씨앗 고르기", date: "4/8(수)", question: "스트레스받을 때 즉각적으로 효과를 보는 나만의 '5분 휴식법'은?", quote: "잘 가꾸어진 정원에는 반드시 고요한 휴식의 공간이 있다." },
+            { chapter: "1. 씨앗 고르기", date: "4/9(목)", question: "완벽하지 않아도 괜찮습니다. 오늘 내가 한 귀여운 실수와 깨달음은?", quote: "성장하는 모든 것은 때로 흔들린다." },
+            { chapter: "1. 씨앗 고르기", date: "4/10(금)", question: "4월 초에 세운 목표를 위해 오늘 실천한 아주 작은 행동 하나는?", quote: "자연은 서두르지 않지만, 모든 것을 이루어낸다." },
+
+            { chapter: "2. 물과 햇빛 주기", date: "4/11(토)", question: "오늘 하루 중 내가 생각해도 '참 잘했다'라며 칭찬해주고 싶은 순간은?", quote: "스스로를 아끼는 마음이 자존감의 토양이 된다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/12(일)", question: "봄 햇살 아래 걷고 싶은 나만의 산책로(혹은 가고 싶은 곳)는 어디인가요?", quote: "걷는 것은 자신을 향한 가장 평화로운 여행이다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/13(월)", question: "시간을 가장 많이 뺏기는 나의 나쁜 습관 하나와 대체할 행동은?", quote: "가치 없는 것을 덜어낼 때 진짜 소중한 것이 보인다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/14(화)", question: "나를 기분 좋게 하는 봄의 '색깔'과 그 색을 닮은 나의 물건은?", quote: "색채는 영혼에 직접적으로 영향을 미치는 건반이다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/15(수)", question: "남들은 모르지만 나만 아는 나의 작고 소중한 장점(기술)은 무엇인가요?", quote: "내 안의 보석은 남이 아닌 내가 먼저 발견해야 빛난다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/16(목)", question: "기운이 없을 때 나를 즉각적으로 충전해 주는 나만의 '소울 푸드'나 '음악'은?", quote: "스스로를 먹이고 달래는 법을 아는 것이 어른의 특권이다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/17(금)", question: "최근 누군가의 성장을 진심으로 응원하고 기뻐해 준 적이 있나요?", quote: "다른 사람을 위해 켠 촛불은 내 앞길도 밝혀준다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/18(토)", question: "오늘 먹은 음식 중 내 몸과 마음에 에너지를 가득 채워준 메뉴는?", quote: "나를 대접하는 음식이 곧 나를 향한 다정함이다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/19(일)", question: "책상 위나 스마트폰에서 지금 당장 정리하고 비워낼 것 하나는?", quote: "건강한 정원을 위해서는 과감한 가지치기가 필요하다." },
+            { chapter: "2. 물과 햇빛 주기", date: "4/20(월)", question: "4월의 2/3이 지났습니다. 남은 열흘 동안 무조건 끝마치고 싶은 미션은?", quote: "선택하고 집중할 때, 마음의 정원에 진정한 길이 열린다." },
+
+            { chapter: "3. 마침내, 꽃피우기", date: "4/21(화)", question: "나에게 영감을 주는, 곁에 두고 오래오래 사귀고 싶은 사람은 누구인가요?", quote: "우리는 가장 많은 시간을 함께 보내는 사람들의 평균이 된다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/22(수)", question: "(지구의 날) 오늘 내가 머문 공간(집, 카페, 사무실)에서 가장 마음에 들었던 구석은?", quote: "가장 아름다운 예술은 일상 속에 숨어있다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/23(목)", question: "(세계 책의 날) 내 인생에 가장 깊은 뿌리를 내린 책 한 권은?", quote: "좋은 책을 읽는 것은 과거의 가장 훌륭한 사람들과 대화하는 것이다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/24(금)", question: "조금 귀찮았지만, 기어코 해내서 큰 뿌듯함을 안겨준 구체적인 일은?", quote: "귀찮음을 이긴 한 걸음이 가장 큰 성취의 꽃을 피운다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/25(토)", question: "요즘 유독 피곤하거나 예민해지는 순간은 언제이며, 어떻게 대처하나요?", quote: "감정을 알아차리는 순간, 감정의 지배에서 벗어날 수 있다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/26(일)", question: "누군가에게 대가를 바라지 않고 베풀었던 작은 친절이 있나요?", quote: "친절의 씨앗을 뿌리면 행복의 꽃이 핀다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/27(월)", question: "최근 처음으로 시도해봤거나, 망설이다가 용기 내어 해본 일은?", quote: "용기란 두려움이 없는 것이 아니라 두려워도 나아가는 것이다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/28(화)", question: "이번 달 내가 새롭게 돈이나 시간을 쓴 나만의 관심사는 무엇인가요?", quote: "자신을 새롭게 알아가는 과정은 평생 이어지는 축제다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/29(수)", question: "나의 4월 한 달을 한 편의 영화 제목으로 짓는다면 무엇일까요?", quote: "나의 일상은 그 자체로 가장 훌륭한 시나리오다." },
+            { chapter: "3. 마침내, 꽃피우기", date: "4/30(목)", question: "4월의 마지막 날, 다가올 5월 첫째 주에 가장 먼저 하고 싶은 일 하나는?", quote: "오늘의 마침표는 내일의 아름다운 시작이다." }
+        ];
+
+        // --- Data Handling ---
+        let currentIndex = 0;
+        const STORAGE_KEY = 'april_journal_entries'; 
+        const STORAGE_KEY_IMAGES = 'april_journal_images';
+        
+        let userEntries = {}; 
+        let userImages = {}; 
+
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) userEntries = JSON.parse(savedData);
+            const savedImages = localStorage.getItem(STORAGE_KEY_IMAGES);
+            if (savedImages) {
+                try {
+                    const parsed = JSON.parse(savedImages);
+                    for (const key in parsed) if (typeof parsed[key] === 'string') parsed[key] = [parsed[key]];
+                    userImages = parsed;
+                } catch (e) {}
+            }
+            generateTabs();
+            renderPage(currentIndex);
+            
+            // Failsafe Loading removal
+            setTimeout(() => {
+                const loader = document.getElementById('loading');
+                if(loader) loader.style.display = 'none';
+            }, 1000);
+        });
+
+        // --- Core Functions ---
+        const tabContainer = document.getElementById('tab-container');
+        
+        function generateTabs() {
+            tabContainer.innerHTML = '';
+            const row1 = document.createElement('div');
+            row1.className = 'flex overflow-x-auto no-scrollbar gap-2 px-4 pb-2 scroll-smooth';
+            const row2 = document.createElement('div');
+            row2.className = 'flex overflow-x-auto no-scrollbar gap-2 px-4 scroll-smooth';
+            
+            // 30 days for April
+            journalData.forEach((_, index) => {
+                const btn = document.createElement('button');
+                const dayNum = index + 1;
+                btn.id = `tab-btn-${index}`;
+                btn.className = `flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 border border-transparent hover:border-emerald-300 focus:outline-none text-stone-600`;
+                btn.textContent = `${dayNum}`;
+                btn.onclick = () => { currentIndex = index; renderPage(index); };
+                if (index < 15) row1.appendChild(btn); else row2.appendChild(btn);
+            });
+            tabContainer.appendChild(row1);
+            tabContainer.appendChild(row2);
+        }
+
+        function updateTabs(index) {
+            document.querySelectorAll('[id^="tab-btn-"]').forEach(tab => {
+                tab.className = `flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 border border-transparent hover:bg-emerald-100 text-stone-500`;
+            });
+            const activeTab = document.getElementById(`tab-btn-${index}`);
+            if (activeTab) {
+                activeTab.className = `flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200 bg-emerald-500 text-white shadow-md transform scale-105`;
+                activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        function renderPage(index) {
+            const data = journalData[index];
+            document.getElementById('chapter-display').textContent = data.chapter;
+            document.getElementById('date-display').textContent = data.date;
+            document.getElementById('question-text').textContent = data.question;
+            document.getElementById('quote-text').textContent = data.quote;
+            document.getElementById('page-indicator').textContent = `${index + 1} / ${journalData.length}`;
+            document.getElementById('answer-input').value = userEntries[index] || "";
+            document.getElementById('char-count').textContent = (userEntries[index] || "").length;
+            
+            renderGallery(index);
+            
+            document.getElementById('btn-prev').disabled = index === 0;
+            document.getElementById('btn-next').disabled = index === journalData.length - 1;
+            updateTabs(index);
+        }
+
+        function renderGallery(index) {
+            const images = userImages[index] || [];
+            const list = document.getElementById('image-list');
+            const container = document.getElementById('image-gallery-container');
+            list.innerHTML = '';
+            
+            if (images.length > 0) {
+                container.classList.remove('hidden');
+                images.forEach((src, imgIdx) => {
+                    const item = document.createElement('div');
+                    item.className = 'image-item group';
+                    item.innerHTML = `<img src="${src}"><button type="button" onclick="removeImage('${imgIdx}', event)" class="remove-image-btn"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                    list.appendChild(item);
+                });
+                lucide.createIcons();
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // --- Interaction ---
+        function saveEntry() {
+            userEntries[currentIndex] = document.getElementById('answer-input').value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userEntries));
+            document.getElementById('char-count').textContent = userEntries[currentIndex].length;
+        }
+        function manualSave() {
+            saveEntry();
+            const t = document.getElementById('save-toast');
+            t.classList.remove('hidden', 'toast-show');
+            void t.offsetWidth; // trigger reflow
+            t.classList.add('toast-show');
+            setTimeout(() => t.classList.add('hidden'), 2500);
+        }
+        function prevPage() { if(currentIndex > 0) { currentIndex--; renderPage(currentIndex); } }
+        function nextPage() { if(currentIndex < journalData.length - 1) { currentIndex++; renderPage(currentIndex); } }
+        document.getElementById('answer-input').addEventListener('input', saveEntry);
+
+        // --- Images ---
+        async function handleImageUpload(e) {
+            const files = e.target.files;
+            if(!files.length) return;
+            if(!userImages[currentIndex]) userImages[currentIndex] = [];
+            
+            for(let file of files) {
+                if(!file.type.startsWith('image/')) continue;
+                try {
+                    const resized = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const img = new Image();
+                            img.src = ev.target.result;
+                            img.onload = () => {
+                                const cvs = document.createElement('canvas');
+                                let w=img.width, h=img.height;
+                                if(w>600) { h*=600/w; w=600; }
+                                cvs.width=w; cvs.height=h;
+                                cvs.getContext('2d').drawImage(img,0,0,w,h);
+                                resolve(cvs.toDataURL('image/jpeg', 0.6));
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    userImages[currentIndex].push(resized);
+                } catch(err){}
+            }
+            localStorage.setItem(STORAGE_KEY_IMAGES, JSON.stringify(userImages));
+            renderGallery(currentIndex);
+            e.target.value = '';
+        }
+
+        function removeImage(idxStr, e) {
+            if(e) e.stopPropagation();
+            if(confirm("삭제하시겠습니까?")) {
+                const idx = parseInt(idxStr);
+                userImages[currentIndex].splice(idx, 1);
+                if(userImages[currentIndex].length===0) delete userImages[currentIndex];
+                localStorage.setItem(STORAGE_KEY_IMAGES, JSON.stringify(userImages));
+                renderGallery(currentIndex);
+            }
+        }
+
+        // --- Export ---
+        async function copyForGoogleDocs() {
+            const btn = document.getElementById('btn-export');
+            const originTxt = btn.innerHTML;
+            btn.innerHTML = '⌛ 복사 중...'; btn.disabled = true;
+            
+            const coverImg = "https://images.unsplash.com/photo-1490750967868-8f52a061c4b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+            
+            let html = `<div style="font-family: Arial, sans-serif; line-height: 1.6; color:#14532d;">
+                <div style="text-align:center; margin-bottom:50px; background: linear-gradient(135deg, #a7f3d0, #6ee7b7); padding: 40px 20px; border-radius: 8px;">
+                    <img src="${coverImg}" style="width:100%; max-width:600px; border-radius:8px; margin-bottom:20px;">
+                    <div style="font-size: 12px; letter-spacing: 2px; color: #064e3b; margin-bottom: 5px;">REBOOT NOTE</div>
+                    <h1 style="font-size:28pt; margin:0; color:#022c22; font-family: 'Nanum Myeongjo', serif;">4월의 기록</h1>
+                    <div style="width: 40px; height: 2px; background: rgba(6, 78, 59, 0.3); margin: 15px auto;"></div>
+                    <p style="font-size:14pt; color:#064e3b; margin:0;">내 마음의 다정한 정원사</p>
+                </div><hr style="border:0; border-top:1px solid #dcfce7; margin-bottom:40px;">`;
+            
+            journalData.forEach((d, i) => {
+                const ent = userEntries[i] || "";
+                const imgs = userImages[i] || [];
+                let iHtml = "";
+                imgs.forEach(s => iHtml += `<img src="${s}" style="max-width:100%; max-height:300px; border-radius:8px; margin:5px;"><br>`);
+                html += `<div style="margin-bottom:40px; border-bottom:2px solid #f0fdf4; padding-bottom:15px;">
+                    <strong style="font-size:14pt;">${d.date}</strong><span style="color:#34d399; margin-left:10px;">Day ${i+1}</span>
+                    <h3 style="font-size:12pt; margin:10px 0;">Q. ${d.question}</h3>
+                    <div style="text-align:center;">${iHtml}</div>
+                    <div style="background:#f8fafc; padding:15px; border-radius:8px; border: 1px solid #ecfdf5;">${ent.replace(/\n/g, '<br>')}</div>
+                </div>`;
+            });
+            html += `</div>`;
+
+            document.getElementById('manual-copy-area').innerHTML = html;
+            document.getElementById('export-overlay').style.display = 'flex';
+            
+            setTimeout(() => {
+                selectAllManual();
+                try { document.execCommand('copy'); } catch(e){}
+                lucide.createIcons();
+                btn.innerHTML = originTxt; btn.disabled = false;
+            }, 300);
+        }
+
+        function selectAllManual() {
+            const el = document.getElementById('manual-copy-area');
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges(); sel.addRange(range);
+        }
+        function copyToClipboardManual() { selectAllManual(); document.execCommand('copy'); alert("복사되었습니다!"); }
+
+        // --- Share & Utils ---
+        async function shareCurrentCard() {
+            const btn = document.getElementById('share-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="animate-spin">⌛</span>`;
+            btn.disabled = true;
+
+            const data = journalData[currentIndex];
+            const entry = userEntries[currentIndex] || "";
+            document.getElementById('share-header').textContent = data.chapter.toUpperCase();
+            document.getElementById('share-date').textContent = data.date;
+            document.getElementById('share-question').textContent = data.question;
+            document.getElementById('share-content').textContent = entry.substring(0, 500) || "(내용 없음)";
+            document.getElementById('share-quote').textContent = data.quote;
+            
+            const imgContainer = document.getElementById('share-image-container');
+            const userImgs = userImages[currentIndex] || [];
+            if(userImgs.length > 0) {
+                document.getElementById('share-image').src = userImgs[0];
+                imgContainer.style.display = 'block';
+            } else {
+                imgContainer.style.display = 'none';
+            }
+
+            try {
+                const canvas = await html2canvas(document.getElementById('share-card-template'), { 
+                    scale: 2, 
+                    useCORS: true, 
+                    backgroundColor: '#f8fafc',
+                    allowTaint: true 
+                });
+                document.getElementById('generated-share-image').src = canvas.toDataURL('image/png');
+                document.getElementById('share-overlay').style.display = 'flex';
+            } catch(e) { 
+                console.error(e);
+                alert("이미지 생성 중 오류가 발생했습니다."); 
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function downloadShareImage() {
+            const a = document.createElement('a');
+            a.download = `4월기록_${journalData[currentIndex].date.replace(/[^a-zA-Z0-9]/g, '')}.png`;
+            a.href = document.getElementById('generated-share-image').src;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function openSettings() { document.getElementById('settings-overlay').style.display = 'flex'; }
+        function closeOverlay(id) { document.getElementById(id).style.display = 'none'; }
+        function openGoogleDocs() { window.open('https://doc.new', '_blank'); closeOverlay('export-overlay'); }
+        
+        function backupData() {
+            const data = { entries: userEntries, images: userImages, date: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'april_backup.json';
+            a.click();
+            closeOverlay('settings-overlay');
+        }
+        function restoreData(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const parsed = JSON.parse(event.target.result);
+                if (parsed.entries) { userEntries = parsed.entries; localStorage.setItem(STORAGE_KEY, JSON.stringify(userEntries)); }
+                if (parsed.images) { userImages = parsed.images; localStorage.setItem(STORAGE_KEY_IMAGES, JSON.stringify(userImages)); }
+                renderPage(currentIndex);
+                alert("복구 완료!");
+                closeOverlay('settings-overlay');
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+        function resetData() {
+            if(confirm("4월 데이터를 정말 삭제하시겠습니까?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY_IMAGES);
+                userEntries = {}; userImages = {};
+                renderPage(currentIndex);
+                alert("초기화 완료");
+                closeOverlay('settings-overlay');
+            }
+        }
+    </script>
+</body>
+</html>
