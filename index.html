@@ -8,8 +8,8 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- html2canvas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 안정적인 기본 html2canvas 라이브러리로 복구 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -82,22 +82,22 @@
         .remove-image-btn:hover { transform: scale(1.1); background: rgba(220, 38, 38, 0.9); }
         .remove-image-btn svg { pointer-events: none; }
 
-        /* 공유 카드 템플릿: 평소엔 완전히 화면 밖(-9999px)으로 치워둠 (투명도 조작 안함) */
+        /* 오류의 원인이었던 복잡한 속성을 제거하고 가장 안정적인 형태로 복구 */
         #share-card-template {
-            position: absolute;
-            left: -9999px; 
-            top: 0; 
-            width: 600px; 
-            min-height: 800px; 
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 600px;
+            min-height: 800px;
             height: auto;
-            background-color: #f8fafc; 
-            padding: 50px 40px; 
+            background-color: #f8fafc;
+            padding: 50px 40px;
             box-sizing: border-box;
-            border: 1px solid #dcfce7; 
+            border: 1px solid #dcfce7;
             font-family: 'Nanum Myeongjo', serif;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
         }
 
@@ -111,13 +111,6 @@
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 selection:bg-emerald-200">
-
-    <!-- 이미지 생성 중 로딩 오버레이 (하얀 장막) -->
-    <div id="generating-overlay" class="fixed inset-0 bg-white/95 backdrop-blur-sm z-[10000] hidden flex-col items-center justify-center">
-        <i data-lucide="loader-2" class="w-12 h-12 animate-spin text-emerald-500 mb-4"></i>
-        <h3 class="text-2xl font-bold book-font text-emerald-800 mb-2">카드를 굽는 중입니다</h3>
-        <p class="text-emerald-600 font-medium">조금만 기다려주세요...</p>
-    </div>
 
     <!-- 데이터 관리 오버레이 -->
     <div id="settings-overlay" class="overlay">
@@ -278,7 +271,7 @@
 
     <footer class="mt-8 text-stone-400 text-xs text-center z-10"><p>작성된 내용은 브라우저에 자동 저장됩니다.</p></footer>
 
-    <!-- Hidden Share Template (JS에서 실제 화면 중앙으로 이동시켜 캡처함) -->
+    <!-- Hidden Share Template (화면 밖 고정) -->
     <div id="share-card-template">
         <div style="font-size: 14px; color: #10b981; margin-bottom: 20px; letter-spacing: 2px; font-family: 'Noto Sans KR', sans-serif;" id="share-header">APRIL RECORD</div>
         <div style="font-size: 20px; font-weight: bold; color: #064e3b; margin-bottom: 5px;" id="share-date"></div>
@@ -287,7 +280,7 @@
         <div id="share-image-container" style="width: 100%; margin-bottom: 20px; display: none;">
             <img id="share-image" src="" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         </div>
-        <div style="font-size: 16px; color: #1e293b; line-height: 1.8; text-align: left; width: 100%; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 4px; white-space: pre-wrap; word-break: keep-all; border: 1px solid #ecfdf5;" id="share-content"></div>
+        <div style="font-size: 16px; color: #1e293b; line-height: 1.8; text-align: left; width: 100%; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 4px; white-space: pre-wrap; word-break: break-word; border: 1px solid #ecfdf5;" id="share-content"></div>
         <div style="margin-top: 40px; font-style: italic; color: #64748b; font-size: 12px;" id="share-quote"></div>
     </div>
 
@@ -535,18 +528,14 @@
         }
         function copyToClipboardManual() { selectAllManual(); document.execCommand('copy'); alert("복사되었습니다!"); }
 
-        /* 핵심 해결 구역: 무한 로딩 없는 완벽한 공유 카드 생성 로직 */
+        /* 핵심 에러 해결: 모든 복잡한 로직 제거, 가장 안정적인 1월 코드와 동일하게 처리 */
         async function shareCurrentCard() {
             const btn = document.getElementById('share-btn');
             const originalText = btn.innerHTML;
             
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-emerald-600"></i>`;
-            lucide.createIcons();
+            // 버튼에만 모래시계 표시
+            btn.innerHTML = `<span class="animate-spin">⌛</span>`;
             btn.disabled = true;
-
-            // 1. 하얀 장막(로딩 화면) 덮어서 캡처 템플릿 숨기기
-            const genOverlay = document.getElementById('generating-overlay');
-            genOverlay.style.display = 'flex';
 
             try {
                 // 데이터 채우기
@@ -566,47 +555,32 @@
                     shareImage.src = userImgs[0];
                     imgContainer.style.display = 'block';
                 } else {
-                    shareImage.src = ""; // 오류 유발하는 빈 이미지 소스 제거
+                    shareImage.src = ""; 
                     imgContainer.style.display = 'none';
                 }
 
+                // 브라우저가 준비될 수 있도록 아주 잠깐 대기
+                await new Promise(r => setTimeout(r, 100));
+
                 const template = document.getElementById('share-card-template');
-                
-                // 2. 장막 뒤 화면 중앙으로 카드 소환 (카메라가 완벽하게 인식하는 위치)
-                template.style.left = '0px';
-                template.style.zIndex = '9000'; // 로딩 오버레이(10000)보다 뒤, 일반 화면보다 앞
 
-                // 브라우저가 화면을 그릴 수 있게 아주 잠깐(0.3초) 대기
-                await new Promise(r => setTimeout(r, 300));
-
-                const canvasPromise = html2canvas(template, { 
+                // 캡처 실행 (강제 타임아웃 없이 안전하게 기다림)
+                const canvas = await html2canvas(template, { 
                     scale: 2, 
                     useCORS: true, 
                     backgroundColor: '#f8fafc',
                     logging: false
                 });
 
-                // 무한 로딩 방지용 안전 타이머
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("시간 초과")), 10000)
-                );
-
-                const canvas = await Promise.race([canvasPromise, timeoutPromise]);
-
+                // 이미지 소스 넣고 오버레이 띄우기
                 document.getElementById('generated-share-image').src = canvas.toDataURL('image/png');
-                
-                // 3. 완료 후 결과창 띄우기
                 document.getElementById('share-overlay').style.display = 'flex';
 
             } catch(e) { 
                 console.error(e);
-                alert("이미지 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."); 
+                alert("이미지 캡처 중 문제가 생겼습니다. 글자나 사진을 조금 줄이고 다시 시도해주세요!"); 
             } finally {
-                // 4. 장막 치우고, 카드 템플릿도 다시 화면 밖으로 완벽하게 치우기
-                const template = document.getElementById('share-card-template');
-                template.style.left = '-9999px';
-                
-                genOverlay.style.display = 'none';
+                // 무조건 버튼 원상 복구
                 btn.innerHTML = originalText;
                 lucide.createIcons();
                 btn.disabled = false;
