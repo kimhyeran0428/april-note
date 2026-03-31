@@ -8,7 +8,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 안정적인 html2canvas CDN으로 교체 -->
+    <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Google Fonts -->
@@ -20,23 +20,21 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f0fdf4; /* Very pale green (emerald-50) */
-            color: #14532d; /* Dark green text */
+            background-color: #f0fdf4;
+            color: #14532d;
         }
         
         .book-font {
             font-family: 'Nanum Myeongjo', serif;
         }
 
-        /* Scrollbar Styling */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         textarea::-webkit-scrollbar { width: 8px; }
         textarea::-webkit-scrollbar-track { background: #f0fdf4; }
-        textarea::-webkit-scrollbar-thumb { background: #86efac; border-radius: 4px; } /* Emerald 300 */
+        textarea::-webkit-scrollbar-thumb { background: #86efac; border-radius: 4px; }
 
-        /* Animation */
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(10px); }
             10% { opacity: 1; transform: translateY(0); }
@@ -45,12 +43,11 @@
         }
         .toast-show { animation: fadeInOut 3s forwards; }
 
-        /* Overlays */
         .overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(6, 78, 59, 0.6); /* Emerald 900 with opacity */
+            background-color: rgba(6, 78, 59, 0.6);
             z-index: 10000;
             justify-content: center; align-items: center;
         }
@@ -64,7 +61,6 @@
             border: 1px solid #dcfce7;
         }
 
-        /* Gallery */
         .image-gallery {
             display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px; margin-bottom: 12px; scroll-behavior: smooth;
         }
@@ -77,22 +73,35 @@
         
         .remove-image-btn {
             position: absolute; top: 6px; right: 6px;
-            background: rgba(21, 128, 61, 0.9); /* Green 700 */
+            background: rgba(21, 128, 61, 0.9);
             color: white; border-radius: 50%; width: 28px; height: 28px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             z-index: 50; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transition: transform 0.1s;
         }
-        .remove-image-btn:hover { transform: scale(1.1); background: rgba(220, 38, 38, 0.9); } /* Red on hover */
+        .remove-image-btn:hover { transform: scale(1.1); background: rgba(220, 38, 38, 0.9); }
         .remove-image-btn svg { pointer-events: none; }
 
-        /* Share Template */
+        /* 공유 카드 템플릿: 투명 망토를 씌워 화면 맨 뒤에 배치 (무한 로딩 완벽 방지) */
         #share-card-template {
-            position: absolute; /* 무한 로딩 방지: fixed 대신 absolute 사용 */
-            left: -9999px; top: 0; width: 600px; min-height: 800px; height: auto;
-            background-color: #f8fafc; padding: 50px 40px; box-sizing: border-box;
-            border: 1px solid #dcfce7; font-family: 'Nanum Myeongjo', serif;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 600px; 
+            min-height: 800px; 
+            height: auto;
+            background-color: #f8fafc; 
+            padding: 50px 40px; 
+            box-sizing: border-box;
+            border: 1px solid #dcfce7; 
+            font-family: 'Nanum Myeongjo', serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+            z-index: -100; /* 화면 가장 뒤로 숨김 */
+            opacity: 0; /* 투명하게 처리하여 사용자에게 안 보이게 함 */
+            pointer-events: none; /* 클릭 방지 */
         }
 
         #manual-copy-area {
@@ -106,7 +115,6 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 selection:bg-emerald-200">
 
-    <!-- Settings Overlay -->
     <div id="settings-overlay" class="overlay">
         <div class="modal-content text-center">
             <h2 class="text-xl font-bold book-font text-emerald-900 mb-6">데이터 관리 (4월)</h2>
@@ -135,7 +143,6 @@
         </div>
     </div>
 
-    <!-- Export Overlay -->
     <div id="export-overlay" class="overlay">
         <div class="modal-content text-center w-full max-w-lg">
             <div id="export-status-container">
@@ -156,7 +163,6 @@
         </div>
     </div>
 
-    <!-- Share Overlay -->
     <div id="share-overlay" class="overlay">
         <div class="modal-content relative p-6 w-full max-w-sm">
             <button onclick="closeOverlay('share-overlay')" class="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -171,7 +177,6 @@
         </div>
     </div>
 
-    <!-- Header -->
     <header class="w-full max-w-3xl flex flex-wrap gap-2 justify-between items-center mb-6 z-10">
         <div class="flex flex-col">
             <h1 class="text-xl md:text-2xl font-bold book-font text-stone-800">4월의 기록</h1>
@@ -190,10 +195,8 @@
         </div>
     </header>
 
-    <!-- Main App -->
     <main id="app" class="w-full max-w-3xl bg-white rounded-xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col relative border border-emerald-100 z-10">
         
-        <!-- Header Image -->
         <div class="relative w-full h-48 bg-emerald-100 overflow-hidden">
             <img src="https://images.unsplash.com/photo-1490750967868-8f52a061c4b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80" alt="Cover" class="w-full h-full object-cover opacity-80" onerror="this.src='https://images.unsplash.com/photo-1416879598555-cc4e4731d651?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80'">
             <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/70 to-emerald-900/10 flex flex-col items-center justify-end pb-6 text-white">
@@ -208,12 +211,10 @@
             <div class="animate-pulse text-emerald-400">페이지를 불러오는 중...</div>
         </div>
 
-        <!-- Tabs -->
         <div class="w-full bg-[#f8fafc] border-b border-emerald-100 py-3">
             <div id="tab-container" class="flex flex-col gap-2"></div>
         </div>
 
-        <!-- Top Bar -->
         <div class="bg-[#f8fafc] px-6 py-4 border-b border-emerald-50 flex justify-between items-center">
             <div class="flex flex-col">
                 <span id="chapter-display" class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Chapter 1</span>
@@ -227,7 +228,6 @@
             </div>
         </div>
 
-        <!-- Writing Area -->
         <div class="flex-1 p-6 md:p-10 flex flex-col justify-center">
             <div class="mb-8 text-center">
                 <h2 id="question-text" class="text-2xl md:text-3xl font-bold book-font leading-relaxed text-stone-800 break-keep"></h2>
@@ -261,7 +261,6 @@
             </div>
         </div>
 
-        <!-- Nav -->
         <div class="bg-[#f8fafc] p-4 border-t border-emerald-100 flex justify-between items-center">
             <button onclick="prevPage()" id="btn-prev" class="flex items-center gap-2 px-4 py-2 text-stone-500 hover:text-emerald-700 disabled:opacity-30 transition"><i data-lucide="chevron-left" class="w-5 h-5"></i> 이전</button>
             <button onclick="nextPage()" id="btn-next" class="flex items-center gap-2 px-4 py-2 text-stone-500 hover:text-emerald-700 disabled:opacity-30 transition">다음 <i data-lucide="chevron-right" class="w-5 h-5"></i></button>
@@ -277,14 +276,14 @@
         <div style="width: 40px; height: 1px; background: #a7f3d0; margin: 15px auto;"></div>
         <div style="font-size: 22px; font-weight: bold; color: #14532d; line-height: 1.4; margin-bottom: 30px; word-break: keep-all;" id="share-question"></div>
         <div id="share-image-container" style="width: 100%; margin-bottom: 20px; display: none;">
-            <img id="share-image" src="" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- 빈 이미지 태그 방지용 1x1 투명 픽셀 -->
+            <img id="share-image" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         </div>
         <div style="font-size: 16px; color: #1e293b; line-height: 1.8; text-align: left; width: 100%; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 4px; white-space: pre-wrap; word-break: keep-all; border: 1px solid #ecfdf5;" id="share-content"></div>
         <div style="margin-top: 40px; font-style: italic; color: #64748b; font-size: 12px;" id="share-quote"></div>
     </div>
 
     <script>
-        // 4월 질문 리스트 (30일)
         const journalData = [
             { chapter: "1. 씨앗 고르기", date: "4/1(수)", question: "이번 달에 꼭 이루고 싶은 작고 구체적인 목표 하나는 무엇인가요?", quote: "가장 좋은 나무를 심는 시간은 20년 전이었고, 두 번째로 좋은 시간은 바로 지금이다." },
             { chapter: "1. 씨앗 고르기", date: "4/2(목)", question: "봄꽃처럼 활짝 웃었던, 오늘 가장 기분 좋았던 순간은 언제인가요?", quote: "기쁨은 꽃과 같아서 스스로 피어나게 두어야 한다." },
@@ -532,7 +531,6 @@
             const btn = document.getElementById('share-btn');
             const originalText = btn.innerHTML;
             
-            // 공유 버튼 로딩 표시 (무한 로딩 방지용 UI 개선)
             btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-emerald-600"></i>`;
             lucide.createIcons();
             btn.disabled = true;
@@ -554,29 +552,27 @@
                     shareImage.src = userImgs[0];
                     imgContainer.style.display = 'block';
                 } else {
-                    shareImage.src = ""; // 투명 픽셀 제거하고 빈 값으로 초기화
+                    shareImage.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
                     imgContainer.style.display = 'none';
                 }
 
-                // 🌟 중요: 내용이 화면에 그려질 수 있도록 0.15초 대기
-                await new Promise(resolve => setTimeout(resolve, 150));
-
                 const template = document.getElementById('share-card-template');
                 
-                // 🌟 중요: 무한 로딩 방지를 위한 '타임아웃(8초)' 설정
+                // 🌟 중요: 복제 없이 직접 투명하게 렌더링하도록 변경
+                template.style.opacity = '1';
+
                 const canvasPromise = html2canvas(template, { 
                     scale: 2, 
                     useCORS: true, 
                     backgroundColor: '#f8fafc',
-                    logging: false,
-                    allowTaint: true
+                    logging: false
                 });
 
+                // 안전 타이머 10초
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("시간 초과")), 8000)
+                    setTimeout(() => reject(new Error("시간 초과")), 10000)
                 );
 
-                // 8초가 넘어가면 에러 발생시켜서 무한 로딩 빠져나오기
                 const canvas = await Promise.race([canvasPromise, timeoutPromise]);
 
                 document.getElementById('generated-share-image').src = canvas.toDataURL('image/png');
@@ -586,7 +582,8 @@
                 console.error(e);
                 alert("이미지 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."); 
             } finally {
-                // 버튼 상태 무조건 원상 복구
+                // 🌟 중요: 캡처 완료 후 다시 투명하게 숨김
+                document.getElementById('share-card-template').style.opacity = '0';
                 btn.innerHTML = originalText;
                 lucide.createIcons();
                 btn.disabled = false;
